@@ -1,0 +1,113 @@
+<odoo>
+    <data>
+        <record id="view_wa_channel_form" model="ir.ui.view">
+            <field name="name">wa.channel.form</field>
+            <field name="model">discuss.channel</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="tag_ids" widget="many2many_tags"/>
+                            </group>
+                            <group>
+                                <field name="wa_partner_id" readonly="1"/>
+                                <field name="channel_type"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Note">
+                                <field name="note" widget="html" placeholder="Add a note or comment..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+        <record id="view_wa_channel_list" model="ir.ui.view">
+            <field name="name">wa.channel.list</field>
+            <field name="model">discuss.channel</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="channel_type"/>
+                    <field name="is_wa" optional="show"/>
+                    <field name="wa_partner_id"/>
+                    <field name="stage_id"/>
+                    <field name="tag_ids" widget="many2many_tags" optional="show"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_wa_channel_kanban" model="ir.ui.view">
+            <field name="name">wa.channel.kanban</field>
+            <field name="model">discuss.channel</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="stage_id" default_order="sequence" records_draggable="1" class="o_kanban_mobile" archivable="false" sample="1" on_create="quick_create">
+                    <field name="name"/>
+                    <field name="channel_type"/>
+                    <field name="is_wa"/>
+                    <field name="wa_partner_id"/>
+                    <field name="wa_account_id"/>
+                    <field name="stage_id"/>
+                    <field name="sequence"/>
+                    <field name="wa_unread_member_count"/>
+                    <field name="wa_unread_count"/>
+                    <field name="tag_ids"/>
+                    <templates>
+                        <t t-name="card" class="row g-0">
+                            <aside class="col-2 my-auto">
+                                <field name="avatar_128" widget="image" options="{'size': [50, 50]}" alt="Channel"/>
+                            </aside>
+                            <main class="col mt-2 me-4 ms-2">
+                                <strong><field name="name"/></strong>
+                                <div class="mt-1">
+                                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button type="object" invisible="is_member or group_ids" class="btn btn-primary flex-fill" name="channel_join">Join</button>
+                                    <button type="object" invisible="not is_member or group_ids" class="btn btn-secondary flex-fill" name="action_unfollow">Leave</button>
+                                    <button type="action" class="btn btn-primary flex-fill" name="%(action_open_discuss)d" context="{'channel_id': id}" string="Open" />
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="me-1">
+                                        <i class="fa fa-whatsapp me-1" style="color:green;" title="WhatsApp" role="img" aria-label="WhatsApp"></i>
+                                        <t t-if="record.wa_account_id and record.wa_account_id.value">
+                                            <strong><t t-esc="record.wa_account_id.value"/></strong> 
+                                        </t>
+                                        <span t-att-title="'Unread'">
+                                            <t t-set="has_members" t-value="record.wa_user_ids and record.wa_user_ids.raw_value and record.wa_user_ids.raw_value.length > 0"/>
+                                            <t t-set="unread" t-value="has_members ? (record.wa_unread_member_count and record.wa_unread_member_count.raw_value) : (record.wa_unread_count and record.wa_unread_count.raw_value)"/>
+                                            <span class="ms-1 me-1 d-inline-flex align-items-center justify-content-center" t-att-class="(unread ? 'bg-success text-white' : 'bg-secondary text-muted')" style="border-radius: 0.25rem; min-width: 1.6em; min-height: 1.6em;">
+                                                <t t-esc="unread || 0"/>
+                                            </span>
+                                        </span>
+                                    </small>
+                                    <div class="d-flex align-items-center gap-2">            
+                                        <field name="wa_user_ids" widget="many2many_avatar_user" readonly="True" class="ms-2"/>
+                                    </div>
+                                </div>
+                            </main>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_wa_channel" model="ir.actions.act_window">
+            <field name="name">Channels WA</field>
+            <field name="res_model">discuss.channel</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="context">{'search_default_is_wa': 1}</field>
+            <field name="domain">[("is_wa", "=", True)]</field>
+            <field name="view_id" eval="ref('view_wa_channel_list')"/>
+            <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_wa_channel_kanban')}), (0, 0, {'view_mode': 'list', 'view_id': ref('view_wa_channel_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_wa_channel_form')})]"/>
+        </record>
+        <menuitem id="menu_wa_channel" name="Channels" parent="wa_conn_root" action="action_wa_channel" sequence="10"/>
+    </data>
+</odoo>

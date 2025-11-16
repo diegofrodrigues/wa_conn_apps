@@ -1,0 +1,6 @@
+<odoo>
+    <data>
+        <menuitem id="wa_conn_root" name="WA Conn" sequence="10"/>
+        <menuitem id="wa_settings" name="Settings" parent="wa_conn_root" sequence="100"/>
+    </data>
+</odoo>

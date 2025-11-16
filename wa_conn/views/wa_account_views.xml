@@ -1,0 +1,184 @@
+<odoo>
+    <data>
+        <record id="view_wa_donate_modal" model="ir.ui.view">
+            <field name="name">wa.conn.donate.modal</field>
+            <field name="model">ir.actions.act_window</field>
+            <field name="arch" type="xml">
+                <form string="Support Our Project">
+                    <group>
+                        <group>
+                            <p>
+                                If you like this module, help the project: consider making a donation to support ongoing development!
+                                <br/>
+                                Or, if you prefer, buy me a beer 🍺 and help keep this project alive!
+                                <br/><br/>
+                                Se você gosta deste módulo, ajude o projeto: considere fazer uma doação para apoiar o desenvolvimento!
+                                <br/>
+                                Ou, se preferir, me pague uma cerveja 🍺 e ajude a manter este projeto vivo!
+                            </p>
+                        </group>
+                        <group>
+                            <div style="text-align:center; margin-top:10px;">
+                                <img src="/wa_conn/static/description/qr_code_donate.png" style="max-width:200px;display:block;margin:auto;" alt="Donate"/>
+                                <span id="pix-feedback" style="display:none;color:green;font-weight:bold;margin-left:10px;">Copiado com sucesso!</span>
+                                <br/>
+                                <a href="#" class="btn btn-secondary" style="margin-left:10px;" role="button"
+                                onclick="navigator.clipboard.writeText('00020126810014br.gov.bcb.pix013655f22863-4cea-41e9-904c-df3ce0b241ef0219wa conn odoo module5204000053039865802BR5924Diego Ferreira Rodrigues6009Sao Paulo62290525REC68545B90764819659464106304D86E').then(function(){var m=document.getElementById('pix-feedback');if(m){m.style.display='inline';setTimeout(function(){m.style.display='none';},2000);}}); return false;">
+                                    Copy Pix Key<br/>
+                                </a>
+                            </div>
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Close" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Modal Donate Wizard Action -->
+        <record id="wa_account_donate_modal_action" model="ir.actions.act_window">
+            <field name="name">Donate</field>
+            <field name="res_model">ir.actions.act_window</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_wa_donate_modal"/>
+            <field name="target">new</field>
+        </record>
+
+        <record id="view_whatsapp_account_form" model="ir.ui.view">
+            <field name="name">wa.conn.wa.account.form</field>
+            <field name="model">wa.account</field>
+            <field name="arch" type="xml">
+                <form string="WhatsApp Account">
+                    <header>
+                        <!-- Provider-specific buttons will be added via xpath by plugins -->
+                        <button name="%(wa_account_donate_modal_action)d" type="action" string="Donate" class="btn-donate" invisible="id == 0" icon="fa-money"/>
+                        
+                        <style>
+                        .btn-donate {
+                            animation: bounce 1s ease 0s 5;
+                            background-color: #4285f4 !important;
+                            opacity: 1 !important;
+                            color: #ffffff !important;
+                            filter: none !important;
+                        }
+
+                        @keyframes bounce {
+                            0%, 100% {
+                                transform: translateY(0);
+                            }
+                            20% {
+                                transform: translateY(-20px);
+                            }
+                            40% {
+                                transform: translateY(0);
+                            }
+                            60% {
+                                transform: translateY(-10px);
+                            }
+                            80% {
+                                transform: translateY(0);
+                            }
+                        }
+                        </style>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group name="main_info">
+                    <field name="company_id" default="context.get('company_id', user.company_id.id)"/>
+                    <field name="name"/>
+                    <field name="provider"/>
+                    <field name="state" readonly="1" widget="badge" 
+                        decoration-success="state == 'connected'" 
+                        decoration-warning="state == 'connecting'" 
+                        decoration-danger="state == 'disconnected'"/>
+                    <field name="wa_team_ids" widget="many2many_tags"/>
+                            </group>
+                            <group name="secondary_info">
+                                <!-- Provider-specific fields (QR code, etc) will be added here via xpath -->
+                            </group>
+                        </group>
+                        <notebook>
+                            <!-- Provider-specific pages will be added via xpath by plugins -->
+                            <page string="Webhook" name="webhook_page">
+                                <header>
+                                    <button name="new_webhook_url" type="object" string="New Webhook URL" class="btn btn-primary" icon="fa-refresh"/>
+                                </header>
+                                <group>
+                                    <group colspan="2">
+                                        <field name="webhook_url" readonly="1" widget="CopyClipboardURL" style="width:100%;"/>
+                                    </group>
+                                    <group>
+                                        <field name="webhook_key" readonly="1" password="True" invisible="1"/>
+                                        <field name="webhook_uuid" readonly="1" invisible="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_whatsapp_account_list" model="ir.ui.view">
+            <field name="name">wa.conn.wa.account.list</field>
+            <field name="model">wa.account</field>
+            <field name="arch" type="xml">
+                <list string="WhatsApp Accounts">
+                    <field name="name"/>
+                    <field name="provider"/>
+                    <field name="state" widget="badge" 
+                           decoration-success="state == 'connected'" 
+                           decoration-warning="state == 'connecting'" 
+                           decoration-danger="state == 'disconnected'"/>
+                    <field name="company_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_whatsapp_account_kanban" model="ir.ui.view">
+            <field name="name">wa.conn.wa.account.kanban</field>
+            <field name="model">wa.account</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="provider"/>
+                    <field name="state"/>
+                    <field name="company_id"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="o_kanban_record">
+                                <div class="o_kanban_primary">
+                                    <strong><field name="name"/></strong>
+                                </div>
+                                <div class="o_kanban_secondary">
+                                    <span>Provider: <field name="provider"/></span>
+                                </div>
+                                <div class="o_kanban_secondary">
+                                    <span><field name="state" widget="badge" 
+                                               decoration-success="state == 'connected'" 
+                                               decoration-warning="state == 'connecting'" 
+                                               decoration-danger="state == 'disconnected'"/></span>
+                                </div>
+                                <div class="o_kanban_secondary">
+                                    <span>Company: <field name="company_id"/></span>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- WhatsApp Account Action -->
+        <record id="action_whatsapp_account" model="ir.actions.act_window">
+            <field name="name">WhatsApp Accounts</field>
+            <field name="res_model">wa.account</field>
+            <field name="view_mode">list,form,kanban</field>
+        </record>
+
+        <!-- Updated root menu -->
+        <menuitem id="menu_wa_account" name="Accounts" parent="wa_conn_root" action="action_whatsapp_account" sequence="30"/>
+    </data>
+</odoo>
