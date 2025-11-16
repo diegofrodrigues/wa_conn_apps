@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wa_bot_user,wa.bot.user,model_wa_bot,base.group_user,1,1,1,1
+access_wa_bot_command_user,wa.bot.command.user,model_wa_bot_command,base.group_user,1,1,1,1
+access_wa_bot_flow_user,wa.bot.flow.user,model_wa_bot_flow,base.group_user,1,1,1,1
+access_wa_bot_session_user,wa.bot.session.user,model_wa_bot_session,base.group_user,1,1,1,1

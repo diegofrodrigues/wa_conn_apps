@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Menu -->
+    <menuitem id="menu_wa_conn_bot_root"
+              name="WA Bot"
+              web_icon="wa_conn_bot,static/description/icon.png"
+              sequence="50"/>
+
+    <!-- Bots Menu -->
+    <menuitem id="menu_wa_bot"
+              name="Bots"
+              parent="menu_wa_conn_bot_root"
+              action="action_wa_bot"
+              sequence="10"/>
+
+    <!-- Commands Menu -->
+    <menuitem id="menu_wa_bot_command"
+              name="Commands"
+              parent="menu_wa_conn_bot_root"
+              action="action_wa_bot_command"
+              sequence="20"/>
+
+    <!-- Flow Builder Menu -->
+    <menuitem id="menu_wa_bot_flow"
+              name="Flow Builder"
+              parent="menu_wa_conn_bot_root"
+              action="action_wa_bot_flow"
+              sequence="30"/>
+
+    <!-- Sessions Menu -->
+    <menuitem id="menu_wa_bot_session"
+              name="Sessions"
+              parent="menu_wa_conn_bot_root"
+              action="action_wa_bot_session"
+              sequence="40"/>
+
+</odoo>

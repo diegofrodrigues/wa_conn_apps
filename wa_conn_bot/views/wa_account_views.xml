@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend wa.account form to add bot fields -->
+    <record id="view_wa_account_form_bot" model="ir.ui.view">
+        <field name="name">wa.account.form.bot</field>
+        <field name="model">wa.account</field>
+        <field name="inherit_id" ref="wa_conn.view_whatsapp_account_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Mover bot_config para depois do grupo secondary_info -->
+            <xpath expr="//group[@name='secondary_info']" position="after">
+                <group colspan="2" string="Bot Configuration" name="bot_config">
+                    <field name="bot_enabled" widget="boolean_toggle"/>
+                    <field name="bot_id" 
+                           invisible="bot_enabled == False"
+                           required="bot_enabled == True"
+                           options="{'no_create': False, 'no_open': False}"/>
+                </group>
+            </xpath>
+            
+            <!-- Add Bot tab in notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Bot" name="bot_page" invisible="bot_enabled == False">
+                    <group>
+                        <group>
+                            <field name="bot_id" invisible="1"/>
+                            <label for="bot_id" string="Active Bot"/>
+                            <div>
+                                <field name="bot_id" 
+                                       class="oe_inline"
+                                       options="{'no_create': False}"/>
+                                <button name="%(wa_conn_bot.action_wa_bot)d" 
+                                        type="action" 
+                                        string="Configure Bot" 
+                                        class="btn-link"
+                                        icon="fa-cog"
+                                        invisible="bot_id == False"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group string="Bot Information" invisible="bot_id == False">
+                        <field name="bot_id" invisible="1"/>
+                        <group>
+                            <label for="bot_id" string="Bot Name"/>
+                            <div>
+                                <field name="bot_id" readonly="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

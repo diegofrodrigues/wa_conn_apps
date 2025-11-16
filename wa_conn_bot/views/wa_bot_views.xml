@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_wa_bot_list" model="ir.ui.view">
+        <field name="name">wa.bot.list</field>
+        <field name="model">wa.bot</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Bots">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="init_mode"/>
+                <field name="session_timeout"/>
+                <field name="active_session_count"/>
+                <field name="command_count"/>
+                <field name="flow_count"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_wa_bot_form" model="ir.ui.view">
+        <field name="name">wa.bot.form</field>
+        <field name="model">wa.bot</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Bot">
+                <header>
+                    <button name="action_test_greeting" string="Test Greeting" type="object" 
+                            class="oe_highlight" invisible="greeting_enabled == False"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_flows" type="object" class="oe_stat_button" icon="fa-sitemap">
+                            <field name="flow_count" widget="statinfo" string="Flow Steps"/>
+                        </button>
+                        <button name="action_view_commands" type="object" class="oe_stat_button" icon="fa-terminal">
+                            <field name="command_count" widget="statinfo" string="Commands"/>
+                        </button>
+                        <button name="action_view_sessions" type="object" class="oe_stat_button" icon="fa-comments">
+                            <field name="active_session_count" widget="statinfo" string="Active Sessions"/>
+                        </button>
+                    </div>
+                    
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active == True"/>
+                    
+                    <field name="color" widget="color_picker" invisible="1"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Bot Name..."/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Basic Settings">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="description"/>
+                            <!-- <field name="user_id" readonly="1"/> -->
+                        </group>
+                        <group string="Statistics">
+                            <field name="total_sessions"/>
+                            <field name="total_messages"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Initialization" name="initialization">
+                            <group>
+                                <group string="Mode">
+                                    <field name="init_mode" widget="radio"/>
+                                    <field name="init_command" 
+                                           invisible="init_mode != 'command'"
+                                           required="init_mode == 'command'"/>
+
+                                </group>
+                                <group string="Greeting">
+                                    <field name="greeting_enabled"/>
+                                    <field name="greeting_message" 
+                                           invisible="greeting_enabled == False"
+                                           widget="text"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Session" name="session">
+                            <group>
+                                <group string="Timeout Settings">
+                                    <field name="session_timeout"/>
+                                    <field name="session_timeout_message" widget="text"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Flow Builder" name="flow">
+                            <field name="flow_ids" context="{'default_bot_id': id}">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="step_type"/>
+                                    <field name="message" optional="hide"/>
+                                    <field name="next_step_id"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Commands" name="commands">
+                            <field name="command_ids" context="{'default_bot_id': id}">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="command"/>
+                                    <field name="execution_count"/>
+                                    <field name="last_execution"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Active Sessions" name="sessions">
+                            <field name="session_ids" domain="[('state', '=', 'active')]">
+                                <list>
+                                    <field name="phone"/>
+                                    <field name="contact_name"/>
+                                    <field name="start_time"/>
+                                    <field name="last_activity"/>
+                                    <field name="message_count"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_wa_bot_kanban" model="ir.ui.view">
+        <field name="name">wa.bot.kanban</field>
+        <field name="model">wa.bot</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="init_mode"/>
+                <field name="active_session_count"/>
+                <field name="command_count"/>
+                <field name="flow_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
+                                <a class="dropdown-toggle o-no-caret btn" role="button" data-bs-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                                    <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                    <a role="menuitem" name="action_view_flows" type="object" class="dropdown-item">View Flows</a>
+                                    <a role="menuitem" name="action_view_commands" type="object" class="dropdown-item">View Commands</a>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <strong class="o_kanban_record_title"><field name="name"/></strong>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="init_mode"/>
+                                    <div class="text-muted">
+                                        <i class="fa fa-sitemap" title="Flow Steps"/> <field name="flow_count"/> steps
+                                        <i class="fa fa-terminal" title="Commands"/> <field name="command_count"/> commands
+                                    </div>
+                                    <div class="text-muted">
+                                        <i class="fa fa-comments" title="Active Sessions"/> <field name="active_session_count"/> active sessions
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_wa_bot_search" model="ir.ui.view">
+        <field name="name">wa.bot.search</field>
+        <field name="model">wa.bot</field>
+        <field name="arch" type="xml">
+            <search string="WhatsApp Bots">
+                <field name="name"/>
+                <field name="init_mode"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="With Active Sessions" name="with_sessions" 
+                        domain="[('active_session_count', '>', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Initialization Mode" name="group_init_mode" 
+                            context="{'group_by': 'init_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_wa_bot" model="ir.actions.act_window">
+        <field name="name">WhatsApp Bots</field>
+        <field name="res_model">wa.bot</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first WhatsApp Bot
+            </p>
+            <p>
+                Configure bots to automatically handle incoming messages with custom flows and commands.
+            </p>
+        </field>
+    </record>
+</odoo>

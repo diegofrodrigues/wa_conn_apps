@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_wa_bot_command_form" model="ir.ui.view">
+        <field name="name">wa.bot.command.form</field>
+        <field name="model">wa.bot.command</field>
+        <field name="arch" type="xml">
+            <form string="Bot Command">
+                <header>
+                    <button name="action_test_command" string="Test Command" type="object" 
+                            class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active == True"/>
+                    
+                    <field name="color" widget="color_picker" invisible="1"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Command Name..."/>
+                        </h1>
+                        <div class="o_row">
+                            <field name="command" placeholder="/command"/>
+                        </div>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="bot_id"/>
+                            <field name="active"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="execution_count"/>
+                            <field name="last_execution"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="What this command does..."/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Python Code" name="code">
+                            <group>
+                                <field name="python_code" nolabel="1" widget="ace" options="{'mode': 'python'}"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Testing" name="testing">
+                            <group>
+                                <group string="Test Input">
+                                    <field name="test_input" placeholder="/command arg1 arg2"/>
+                                </group>
+                            </group>
+                            <group string="Test Output">
+                                <field name="test_output" nolabel="1" widget="text" readonly="1"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Help" name="help">
+                            <div class="alert alert-info" role="alert">
+                                <h4>Available Variables in Python Code:</h4>
+                                <ul>
+                                    <li><strong>session</strong>: Current bot session (wa.bot.session)</li>
+                                    <li><strong>message</strong>: Full message text received</li>
+                                    <li><strong>args</strong>: Command arguments (list of strings)</li>
+                                    <li><strong>phone</strong>: Sender phone number</li>
+                                    <li><strong>env</strong>: Odoo environment</li>
+                                    <li><strong>bot</strong>: Bot instance</li>
+                                    <li><strong>json</strong>: JSON module</li>
+                                    <li><strong>_</strong>: Translation function</li>
+                                </ul>
+                                
+                                <h4>Set Response:</h4>
+                                <p>Set the <code>result</code> variable with your response:</p>
+                                <ul>
+                                    <li><code>result = "Simple text response"</code></li>
+                                    <li><code>result = {"text": "Response", "data": {...}}</code></li>
+                                    <li><code>result = {"ok": False, "error": "Error message"}</code></li>
+                                </ul>
+                                
+                                <h4>Example Commands:</h4>
+                                <pre>
+# Show help
+result = f"Available commands:\n• /help - Show this help\n• /status - Check status"
+
+# Search partner
+if args:
+    keyword = args[0]
+    partners = env['res.partner'].search([('name', 'ilike', keyword)])
+    result = f"Found {len(partners)} partners matching '{keyword}'"
+else:
+    result = "Usage: /search &lt;keyword&gt;"
+
+# Get session info
+result = {
+    'ok': True,
+    'text': f"Session active for {phone}\nMessages: {session.message_count}"
+}
+                                </pre>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_wa_bot_command_list" model="ir.ui.view">
+        <field name="name">wa.bot.command.list</field>
+        <field name="model">wa.bot.command</field>
+        <field name="arch" type="xml">
+            <list string="Bot Commands">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="command"/>
+                <field name="bot_id"/>
+                <field name="execution_count"/>
+                <field name="last_execution"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_wa_bot_command_search" model="ir.ui.view">
+        <field name="name">wa.bot.command.search</field>
+        <field name="model">wa.bot.command</field>
+        <field name="arch" type="xml">
+            <search string="Bot Commands">
+                <field name="name"/>
+                <field name="command"/>
+                <field name="bot_id"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Bot" name="group_bot" context="{'group_by': 'bot_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_wa_bot_command" model="ir.actions.act_window">
+        <field name="name">Bot Commands</field>
+        <field name="res_model">wa.bot.command</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first bot command
+            </p>
+            <p>
+                Commands allow users to trigger custom actions using shortcuts like /help, #status, !info
+            </p>
+        </field>
+    </record>
+</odoo>

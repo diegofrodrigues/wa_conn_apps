@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wa_api_event_user,access.wa.api.event.user,model_wa_api_event,base.group_user,1,1,1,1
+access_wa_api_event_manager,access.wa.api.event.manager,model_wa_api_event,base.group_system,1,1,1,1
+access_wa_api_event,access_wa_api_event,model_wa_api_event,,1,1,1,1

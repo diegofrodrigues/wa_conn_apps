@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Bot de Exemplo Simples -->
+        <record id="demo_bot_simple" model="wa.bot">
+            <field name="name">Bot Atendimento Simples</field>
+            <field name="sequence">1</field>
+            <field name="active">True</field>
+            <field name="init_mode">auto</field>
+            <field name="session_timeout">30</field>
+            <field name="greeting_enabled">True</field>
+            <field name="greeting_message">Olá! 👋 Bem-vindo ao nosso atendimento.
+
+Digite /menu para ver as opções disponíveis.</field>
+        </record>
+
+        <!-- Comando: Menu Principal -->
+        <record id="demo_command_menu" model="wa.bot.command">
+            <field name="bot_id" ref="demo_bot_simple"/>
+            <field name="sequence">10</field>
+            <field name="name">Menu Principal</field>
+            <field name="command">/menu</field>
+            <field name="description">Exibe menu de opções</field>
+            <field name="python_code">result = """📋 *MENU DE OPÇÕES*
+
+Por favor, escolha uma opção:
+
+1️⃣ /suporte - Suporte Técnico
+2️⃣ /comercial - Comercial/Vendas
+3️⃣ /status - Status do Pedido
+4️⃣ /horario - Horário de Atendimento
+
+Digite o comando desejado."""</field>
+        </record>
+
+        <!-- Comando: Suporte -->
+        <record id="demo_command_suporte" model="wa.bot.command">
+            <field name="bot_id" ref="demo_bot_simple"/>
+            <field name="sequence">20</field>
+            <field name="name">Suporte Técnico</field>
+            <field name="command">/suporte</field>
+            <field name="description">Direciona para suporte técnico</field>
+            <field name="python_code">result = """🔧 *SUPORTE TÉCNICO*
+
+Você foi direcionado para o suporte técnico.
+Nossa equipe responderá em breve.
+
+Por favor, descreva seu problema com o máximo de detalhes possível.
+
+⏰ Horário: Segunda a Sexta, 8h às 18h
+📞 Urgente: (11) 99999-9999"""</field>
+        </record>
+
+        <!-- Comando: Comercial -->
+        <record id="demo_command_comercial" model="wa.bot.command">
+            <field name="bot_id" ref="demo_bot_simple"/>
+            <field name="sequence">30</field>
+            <field name="name">Comercial/Vendas</field>
+            <field name="command">/comercial</field>
+            <field name="description">Direciona para comercial</field>
+            <field name="python_code">result = """💼 *COMERCIAL / VENDAS*
+
+Você foi direcionado para o setor comercial.
+Nossa equipe de vendas responderá em breve.
+
+Como podemos ajudá-lo?
+• Orçamento
+• Informações sobre produtos
+• Parcerias
+
+📧 Email: comercial@empresa.com
+📞 Tel: (11) 3333-3333"""</field>
+        </record>
+
+        <!-- Comando: Status -->
+        <record id="demo_command_status" model="wa.bot.command">
+            <field name="bot_id" ref="demo_bot_simple"/>
+            <field name="sequence">40</field>
+            <field name="name">Status do Pedido</field>
+            <field name="command">/status</field>
+            <field name="description">Consulta status de pedido</field>
+            <field name="python_code"># Buscar pedidos do cliente (por telefone)
+partner = env['res.partner'].sudo().search([
+    ('mobile', '=', session.phone)
+], limit=1)
+
+if not partner:
+    result = """❌ Cliente não encontrado.
+
+Para consultar seus pedidos, precisamos que você esteja cadastrado em nosso sistema.
+
+Entre em contato com /comercial para se cadastrar."""
+else:
+    # Buscar últimos 3 pedidos
+    orders = env['sale.order'].sudo().search([
+        ('partner_id', '=', partner.id)
+    ], order='date_order desc', limit=3)
+    
+    if not orders:
+        result = f"""📦 *STATUS DE PEDIDOS*
+
+Olá, {partner.name}!
+
+Você ainda não possui pedidos em nosso sistema.
+
+Gostaria de fazer um pedido? Digite /comercial"""
+    else:
+        lines = [f"📦 *STATUS DE PEDIDOS*\n", f"Cliente: {partner.name}\n"]
+        
+        for order in orders:
+            status_emoji = {
+                'draft': '📝',
+                'sent': '📤',
+                'sale': '✅',
+                'done': '🎉',
+                'cancel': '❌'
+            }.get(order.state, '❓')
+            
+            status_text = {
+                'draft': 'Rascunho',
+                'sent': 'Enviado',
+                'sale': 'Confirmado',
+                'done': 'Entregue',
+                'cancel': 'Cancelado'
+            }.get(order.state, order.state)
+            
+            lines.append(f"{status_emoji} *{order.name}*")
+            lines.append(f"   Status: {status_text}")
+            lines.append(f"   Valor: R$ {order.amount_total:,.2f}")
+            lines.append(f"   Data: {order.date_order.strftime('%d/%m/%Y')}\n")
+        
+        result = "\n".join(lines)</field>
+        </record>
+
+        <!-- Comando: Horário -->
+        <record id="demo_command_horario" model="wa.bot.command">
+            <field name="bot_id" ref="demo_bot_simple"/>
+            <field name="sequence">50</field>
+            <field name="name">Horário de Atendimento</field>
+            <field name="command">/horario</field>
+            <field name="description">Exibe horários de atendimento</field>
+            <field name="python_code">result = """⏰ *HORÁRIO DE ATENDIMENTO*
+
+🏢 *Loja/Escritório:*
+• Segunda a Sexta: 8h às 18h
+• Sábado: 9h às 13h
+• Domingo: Fechado
+
+📱 *WhatsApp (Este Canal):*
+• Segunda a Sexta: 8h às 20h
+• Sábado: 9h às 15h
+• Domingo: Fechado
+
+⚠️ Fora do horário, deixe sua mensagem que responderemos assim que possível.
+
+Feriados: Consulte nossa página"""</field>
+        </record>
+
+    </data>
+</odoo>

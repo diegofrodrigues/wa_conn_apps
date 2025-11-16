@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View for Quepasa Provider -->
+    <record id="view_wa_account_form_quepasa" model="ir.ui.view">
+        <field name="name">wa.account.form.quepasa</field>
+        <field name="model">wa.account</field>
+        <field name="inherit_id" ref="wa_conn.view_whatsapp_account_form"/>
+        <field name="arch" type="xml">
+            <!-- Adiciona botões no header -->
+            <xpath expr="//header/button[@name='%(wa_conn.wa_account_donate_modal_action)d']" position="after">
+                <!-- Botões Quepasa -->
+                <button name="create_bot" 
+                        string="Create Bot" 
+                        type="object" 
+                        class="oe_highlight"
+                        invisible="provider != 'quepasa' or bot_created"
+                        confirm="This will create a new bot in Quepasa. Continue?"/>
+                <button name="connect" 
+                        string="Connect" 
+                        type="object" 
+                        class="oe_highlight"
+                        invisible="provider != 'quepasa' or state == 'connected' or not bot_created"
+                        icon="fa-plug"/>
+                <button name="refresh_qrcode" 
+                        string="Refresh QR Code" 
+                        type="object"
+                        invisible="provider != 'quepasa' or state == 'connected' or not bot_created"
+                        icon="fa-refresh"/>
+                <button name="check_status" 
+                        string="Check Status" 
+                        type="object"
+                        invisible="provider != 'quepasa' or not bot_created"
+                        icon="fa-heartbeat"/>
+                <button name="disconnect" 
+                        string="Disconnect" 
+                        type="object"
+                        invisible="provider != 'quepasa' or state != 'connected'"
+                        confirm="This will disconnect the bot from WhatsApp. Continue?"
+                        icon="fa-unlink"/>
+                <button name="delete_bot" 
+                        string="Delete Bot" 
+                        type="object"
+                        invisible="provider != 'quepasa' or not bot_created"
+                        confirm="This will permanently delete the bot from Quepasa. Continue?"
+                        icon="fa-trash"/>
+            </xpath>
+
+            <xpath expr="//field[@name='provider']" position="after">
+                <field name="quepasa_url" placeholder="https://quepasa-api.bitconn.com.br" required="provider == 'quepasa'" invisible="provider != 'quepasa'"/>
+                <field name="quepasa_bot_token" password="True" required="provider == 'quepasa'" placeholder="Cole o token obtido da interface web do Quepasa" invisible="provider != 'quepasa'"/>
+                <field name="bot_created" readonly="1" invisible="provider != 'quepasa'"/>
+            </xpath>
+
+            <xpath expr="//group[@name='secondary_info']" position="inside">
+                <div style="text-align:center; margin-top:10px;" 
+                        invisible="provider != 'quepasa'">
+                    <button name="refresh_qrcode" type="object" 
+                            string="Refresh QR Code" 
+                            class="btn btn-link" 
+                            icon="fa-refresh"/>
+                    <field name="qr_code" widget="image" readonly="1" nolabel="1"/>
+                </div>
+            </xpath>
+            
+            <!-- Adiciona campos específicos do Quepasa no notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Quepasa Settings" invisible="provider != 'quepasa'">
+                    <group string="Webhook Configuration">
+                        <group>
+                            <field name="quepasa_webhook_enabled"/>
+                            <field name="webhook_url" readonly="1" 
+                                   invisible="not quepasa_webhook_enabled"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

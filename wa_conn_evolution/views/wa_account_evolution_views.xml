@@ -1,0 +1,124 @@
+<odoo>
+    <data>
+        <!-- Extend wa.account form view to add Evolution-specific fields -->
+        <record id="view_whatsapp_account_form_evolution" model="ir.ui.view">
+            <field name="name">wa.account.form.evolution</field>
+            <field name="model">wa.account</field>
+            <field name="inherit_id" ref="wa_conn.view_whatsapp_account_form"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add Evolution buttons to header -->
+                <xpath expr="//header" position="inside">
+                    <button name="create_instance" type="object" string="Create Instance" 
+                            class="btn-primary" 
+                            invisible="provider != 'evolution'"/>
+                    <button name="connect" type="object" string="Connect" 
+                            class="btn-success" 
+                            invisible="provider != 'evolution'"/>
+                    <button name="check_status" type="object" string="Check Status" 
+                            class="btn-info" 
+                            invisible="provider != 'evolution'"/>
+                    <button name="restart" type="object" string="Restart" 
+                            class="btn-warning" 
+                            invisible="provider != 'evolution'"/>
+                    <button name="disconnect" type="object" string="Disconnect" 
+                            class="btn-secondary" 
+                            invisible="provider != 'evolution'"/>
+                    <button name="delete_instance" type="object" string="Delete Instance" 
+                            class="btn-danger" 
+                            invisible="provider != 'evolution'"/>
+                </xpath>
+                
+                <!-- Add Evolution API fields after provider field -->
+                <xpath expr="//field[@name='provider']" position="after">
+                    <field name="instance_name" 
+                           invisible="provider != 'evolution'"
+                           placeholder="Auto-generated from Account Name if empty"/>
+                    <field name="api_url" widget="url" 
+                           invisible="provider != 'evolution'" 
+                           required="provider == 'evolution'"/>
+                    <field name="api_key" password="1" 
+                           invisible="provider != 'evolution'" 
+                           required="provider == 'evolution'"/>
+                </xpath>
+                
+                <!-- Add QR Code to secondary_info group -->
+                <xpath expr="//group[@name='secondary_info']" position="inside">
+                    <div style="text-align:center; margin-top:10px;" 
+                         invisible="provider != 'evolution'">
+                        <button name="refresh_qrcode" type="object" 
+                                string="Refresh QR Code" 
+                                class="btn btn-link" 
+                                icon="fa-refresh"/>
+                        <field name="qr_code" widget="image" readonly="1" nolabel="1"/>
+                    </div>
+                </xpath>
+                
+                <!-- Add Evolution Settings page -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="Evolution Settings" name="evolution_settings" 
+                          invisible="provider != 'evolution'">
+                            <separator string="Comportamento"/>
+                            <group>
+                                <group>
+                                    <field name="reject_call" widget="boolean_toggle"/>
+                                    <field name="call_rejected_message" invisible="reject_call != True"/>
+                                    <field name="ignore_group" widget="boolean_toggle"/>
+                                    <field name="always_online" widget="boolean_toggle"/>
+                                </group>
+                                <group>
+                                    <field name="view_message" widget="boolean_toggle"/>
+                                    <field name="sync_history" widget="boolean_toggle"/>
+                                    <field name="view_status" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                            <separator string="Webhook"/>
+                            <group>
+                                <group>
+                                    <field name="enable_webhook" widget="boolean_toggle"/>
+                                </group>
+                                <group>
+                                    <field name="base64_webhook" widget="boolean_toggle"/>
+                                </group>
+                                <group colspan="2">
+                                    <field name="api_events_ids" 
+                                        string="Webhook Events" 
+                                        widget="many2many_tags" 
+                                        options="{'no_create': True, 'no_create_edit': True}"/>
+                                </group>
+                            </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- Extend list view to add api_url -->
+        <record id="view_whatsapp_account_list_evolution" model="ir.ui.view">
+            <field name="name">wa.account.list.evolution</field>
+            <field name="model">wa.account</field>
+            <field name="inherit_id" ref="wa_conn.view_whatsapp_account_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='provider']" position="after">
+                    <field name="api_url" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- Extend kanban view -->
+        <record id="view_whatsapp_account_kanban_evolution" model="ir.ui.view">
+            <field name="name">wa.account.kanban.evolution</field>
+            <field name="model">wa.account</field>
+            <field name="inherit_id" ref="wa_conn.view_whatsapp_account_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='provider']" position="after">
+                    <field name="api_url"/>
+                </xpath>
+                <xpath expr="//span[contains(text(), 'Provider:')]" position="after">
+                    <div class="o_kanban_secondary" t-if="record.api_url.raw_value">
+                        <span>API: <field name="api_url"/></span>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

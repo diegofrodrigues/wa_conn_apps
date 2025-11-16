@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_wa_bot_flow_form" model="ir.ui.view">
+        <field name="name">wa.bot.flow.form</field>
+        <field name="model">wa.bot.flow</field>
+        <field name="arch" type="xml">
+            <form string="Flow Step">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" 
+                            invisible="active == True"/>
+                    
+                    <field name="color" widget="color_picker" invisible="1"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Step Name..."/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="bot_id"/>
+                            <field name="active"/>
+                            <field name="sequence"/>
+                            <field name="delay" widget="integer"/>
+                        </group>
+                        <group>
+                            <field name="step_type" widget="radio"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <!-- Message Step -->
+                        <page string="Message" name="message" 
+                              invisible="step_type not in ['message', 'question']">
+                            <group>
+                                <field name="message" nolabel="1" widget="text" 
+                                       placeholder="Message to send...&#10;&#10;Available variables:&#10;• {contact_name}&#10;• {phone}&#10;• {variable_name}"/>
+                            </group>
+                        </page>
+                        
+                        <!-- Question Step -->
+                        <page string="Question Settings" name="question" 
+                              invisible="step_type != 'question'">
+                            <group>
+                                <group string="Answer">
+                                    <field name="question_variable" 
+                                           placeholder="variable_name"/>
+                                    <field name="question_validation"/>
+                                </group>
+                                <group string="Validation">
+                                    <field name="validation_error_message" 
+                                           invisible="question_validation == 'none'"/>
+                     <field name="validation_code" widget="ace" 
+                         options="{'mode': 'python'}"
+                         invisible="question_validation != 'custom'"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <!-- Condition Step -->
+                        <page string="Condition" name="condition" 
+                              invisible="step_type != 'condition'">
+                            <group>
+                                <field name="condition_type" widget="radio"/>
+                            </group>
+                            
+                            <group invisible="condition_type != 'variable'">
+                                <group string="Variable Comparison">
+                                    <field name="condition_variable" placeholder="variable_name"/>
+                                    <field name="condition_operator"/>
+                                    <field name="condition_value" placeholder="value"/>
+                                </group>
+                            </group>
+                            
+                            <group invisible="condition_type != 'python'">
+                    <field name="condition_code" nolabel="1" widget="ace" 
+                        options="{'mode': 'python'}"
+                        placeholder="# Condition code&#10;# Set result = True/False&#10;result = session.get_variable('age') &gt; 18"/>
+                            </group>
+                        </page>
+                        
+                        <!-- Action Step -->
+                        <page string="Action" name="action" 
+                              invisible="step_type != 'action'">
+                            <group>
+                    <field name="action_code" nolabel="1" widget="ace" 
+                        options="{'mode': 'python'}"
+                        placeholder="# Action code&#10;# Example:&#10;session.set_variable('processed', True)"/>
+                            </group>
+                        </page>
+                        
+                        <!-- Next Steps -->
+                        <page string="Next Steps" name="next">
+                            <group invisible="step_type == 'condition'">
+                                <field name="next_step_id"/>
+                            </group>
+                            <group invisible="step_type != 'condition'">
+                                <group string="Branching">
+                                    <field name="next_step_true_id"/>
+                                    <field name="next_step_false_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <!-- Notes -->
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Additional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_wa_bot_flow_list" model="ir.ui.view">
+        <field name="name">wa.bot.flow.list</field>
+        <field name="model">wa.bot.flow</field>
+        <field name="arch" type="xml">
+            <list string="Flow Steps">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="bot_id"/>
+                <field name="step_type"/>
+                <field name="delay" optional="show" string="Delay (s)"/>
+                <field name="message" optional="hide"/>
+                <field name="next_step_id"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_wa_bot_flow_search" model="ir.ui.view">
+        <field name="name">wa.bot.flow.search</field>
+        <field name="model">wa.bot.flow</field>
+        <field name="arch" type="xml">
+            <search string="Flow Steps">
+                <field name="name"/>
+                <field name="bot_id"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Messages" name="messages" domain="[('step_type', '=', 'message')]"/>
+                <filter string="Questions" name="questions" domain="[('step_type', '=', 'question')]"/>
+                <filter string="Conditions" name="conditions" domain="[('step_type', '=', 'condition')]"/>
+                <filter string="Actions" name="actions" domain="[('step_type', '=', 'action')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Bot" name="group_bot" context="{'group_by': 'bot_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'step_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_wa_bot_flow" model="ir.actions.act_window">
+        <field name="name">Flow Builder</field>
+        <field name="res_model">wa.bot.flow</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first flow step
+            </p>
+            <p>
+                Build conversation flows with messages, questions, conditions and actions.
+            </p>
+        </field>
+    </record>
+</odoo>

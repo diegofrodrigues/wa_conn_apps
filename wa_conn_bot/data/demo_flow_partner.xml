@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Bot com Identificação de Partner -->
+        <record id="demo_bot_partner_identify" model="wa.bot">
+            <field name="name">Bot Identificação Partner</field>
+            <field name="sequence">2</field>
+            <field name="active">True</field>
+            <field name="init_mode">auto</field>
+            <field name="session_timeout">30</field>
+            <field name="greeting_enabled">False</field>
+        </record>
+
+        <!-- Step 1: Action - Identificar Partner pelo Telefone -->
+        <record id="demo_flow_identify_partner" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">10</field>
+            <field name="name">Identificar Partner</field>
+            <field name="step_type">action</field>
+            <field name="delay">0</field>
+            <field name="action_code">
+# Pegar o telefone da sessão
+phone = session.phone
+
+# Limpar o telefone (remover caracteres especiais)
+import re
+phone_clean = re.sub(r'[^\d]', '', phone)
+
+# Buscar partner pelo telefone
+Partner = env['res.partner']
+
+# Tentar encontrar por phone ou mobile
+partner = Partner.search([
+    '|',
+    ('phone', 'ilike', phone_clean[-9:]),  # Últimos 9 dígitos
+    ('mobile', 'ilike', phone_clean[-9:])
+], limit=1)
+
+# Salvar informações na sessão
+if partner:
+    session.set_variable('partner_id', partner.id)
+    session.set_variable('partner_name', partner.name)
+    session.set_variable('partner_found', True)
+else:
+    session.set_variable('partner_found', False)
+    session.set_variable('partner_name', 'Cliente')
+            </field>
+        </record>
+
+        <!-- Step 2: Condition - Verificar se Partner foi Encontrado -->
+        <record id="demo_flow_check_partner" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">20</field>
+            <field name="name">Verificar se Partner Existe</field>
+            <field name="step_type">condition</field>
+            <field name="delay">0</field>
+            <field name="condition_type">variable</field>
+            <field name="condition_variable">partner_found</field>
+            <field name="condition_operator">==</field>
+            <field name="condition_value">True</field>
+        </record>
+
+        <!-- Step 3a: Message - Saudação Personalizada (Partner Encontrado) -->
+        <record id="demo_flow_greeting_known" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">30</field>
+            <field name="name">Saudação Personalizada</field>
+            <field name="step_type">message</field>
+            <field name="delay">1</field>
+            <field name="message">Oi *{partner_name}*! 👋
+
+Já te identifiquei aqui nos nossos registros! 
+
+Como posso te ajudar nesse momento?
+
+Precisa falar com nosso time de:
+
+1️⃣ - Suporte
+2️⃣ - Comercial  
+3️⃣ - Financeiro
+
+Digite o número da opção desejada.</field>
+        </record>
+
+        <!-- Step 3b: Message - Saudação Genérica (Partner NÃO Encontrado) -->
+        <record id="demo_flow_greeting_unknown" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">31</field>
+            <field name="name">Saudação Genérica</field>
+            <field name="step_type">message</field>
+            <field name="delay">1</field>
+            <field name="message">Olá! 👋
+
+Bem-vindo ao nosso atendimento!
+
+Como posso te ajudar nesse momento?
+
+Precisa falar com nosso time de:
+
+1️⃣ - Suporte
+2️⃣ - Comercial
+3️⃣ - Financeiro
+
+Digite o número da opção desejada.</field>
+        </record>
+
+        <!-- Step 4: Question - Aguardar Escolha -->
+        <record id="demo_flow_wait_department" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">40</field>
+            <field name="name">Aguardar Escolha do Departamento</field>
+            <field name="step_type">question</field>
+            <field name="delay">0</field>
+            <field name="message">Por favor, digite 1, 2 ou 3:</field>
+            <field name="question_variable">department</field>
+            <field name="question_validation">custom</field>
+            <field name="validation_code">
+# Validar se é 1, 2 ou 3
+if answer.strip() in ['1', '2', '3']:
+    valid = True
+else:
+    valid = False
+    error_message = "❌ Opção inválida! Por favor, digite 1 (Suporte), 2 (Comercial) ou 3 (Financeiro)."
+            </field>
+        </record>
+
+        <!-- Step 5: Action - Processar Escolha e Preparar Mensagem -->
+        <record id="demo_flow_process_choice" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">50</field>
+            <field name="name">Processar Escolha</field>
+            <field name="step_type">action</field>
+            <field name="delay">0</field>
+            <field name="action_code">
+# Mapear escolha para nome do departamento
+department = session.get_variable('department')
+
+department_map = {
+    '1': 'Suporte Técnico',
+    '2': 'Comercial',
+    '3': 'Financeiro'
+}
+
+department_name = department_map.get(department, 'Atendimento')
+session.set_variable('department_name', department_name)
+
+# Mapear emoji
+emoji_map = {
+    '1': '🔧',
+    '2': '💼',
+    '3': '💰'
+}
+
+session.set_variable('department_emoji', emoji_map.get(department, '📋'))
+            </field>
+        </record>
+
+        <!-- Step 6: Message - Confirmação -->
+        <record id="demo_flow_confirmation_department" model="wa.bot.flow">
+            <field name="bot_id" ref="demo_bot_partner_identify"/>
+            <field name="sequence">60</field>
+            <field name="name">Confirmação de Redirecionamento</field>
+            <field name="step_type">message</field>
+            <field name="delay">1</field>
+            <field name="message">{department_emoji} *{department_name}*
+
+Perfeito, {partner_name}!
+
+Você foi direcionado para o setor de *{department_name}*.
+
+Nossa equipe responderá em breve! ⏱️
+
+Por favor, aguarde ou descreva sua solicitação.</field>
+        </record>
+
+        <!-- Links entre os Steps -->
+        
+        <!-- Step 1 -> Step 2 -->
+        <record id="demo_flow_identify_partner" model="wa.bot.flow">
+            <field name="next_step_id" ref="demo_flow_check_partner"/>
+        </record>
+
+        <!-- Step 2 -> Step 3a (True) ou Step 3b (False) -->
+        <record id="demo_flow_check_partner" model="wa.bot.flow">
+            <field name="next_step_true_id" ref="demo_flow_greeting_known"/>
+            <field name="next_step_false_id" ref="demo_flow_greeting_unknown"/>
+        </record>
+
+        <!-- Step 3a -> Step 4 -->
+        <record id="demo_flow_greeting_known" model="wa.bot.flow">
+            <field name="next_step_id" ref="demo_flow_wait_department"/>
+        </record>
+
+        <!-- Step 3b -> Step 4 -->
+        <record id="demo_flow_greeting_unknown" model="wa.bot.flow">
+            <field name="next_step_id" ref="demo_flow_wait_department"/>
+        </record>
+
+        <!-- Step 4 -> Step 5 -->
+        <record id="demo_flow_wait_department" model="wa.bot.flow">
+            <field name="next_step_id" ref="demo_flow_process_choice"/>
+        </record>
+
+        <!-- Step 5 -> Step 6 -->
+        <record id="demo_flow_process_choice" model="wa.bot.flow">
+            <field name="next_step_id" ref="demo_flow_confirmation_department"/>
+        </record>
+
+    </data>
+</odoo>

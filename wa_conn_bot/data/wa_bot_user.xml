@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="wa_bot_user" model="res.users">
+            <field name="name">Mr. Robot</field>
+            <field name="login">mr.robot@wa.bot</field>
+            <field name="active">True</field>
+            <!-- Sem grupo interno para ocultar da lista padrão -->
+            <field name="share">True</field>
+            <field name="password">!bot_no_login!</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="notification_type">email</field>
+        </record>
+    </data>
+</odoo>
