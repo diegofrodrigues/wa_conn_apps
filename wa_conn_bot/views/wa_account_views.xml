@@ -11,10 +11,10 @@
             <xpath expr="//group[@name='secondary_info']" position="after">
                 <group colspan="2" string="Bot Configuration" name="bot_config">
                     <field name="bot_enabled" widget="boolean_toggle"/>
-                    <field name="bot_id" 
+                    <!-- <field name="bot_id" 
                            invisible="bot_enabled == False"
                            required="bot_enabled == True"
-                           options="{'no_create': False, 'no_open': False}"/>
+                           options="{'no_create': False, 'no_open': False}"/> -->
                 </group>
             </xpath>
             
@@ -38,7 +38,7 @@
                             </div>
                         </group>
                     </group>
-                    <group string="Bot Information" invisible="bot_id == False">
+                    <!-- <group string="Bot Information" invisible="bot_id == False">
                         <field name="bot_id" invisible="1"/>
                         <group>
                             <label for="bot_id" string="Bot Name"/>
@@ -46,7 +46,7 @@
                                 <field name="bot_id" readonly="1" class="oe_inline"/>
                             </div>
                         </group>
-                    </group>
+                    </group> -->
                 </page>
             </xpath>
         </field>

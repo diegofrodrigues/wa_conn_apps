@@ -17,6 +17,7 @@
                             <group>
                                 <field name="wa_partner_id" readonly="1"/>
                                 <field name="channel_type"/>
+                                <field name="wa_user_ids" widget="many2many_avatar_user" readonly="True" class="ms-2"/>
                             </group>
                         </group>
                         <notebook>
